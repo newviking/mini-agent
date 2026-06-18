@@ -216,6 +216,31 @@ trace 内容示例：
 
 第二轮能够继续处理，是因为任务状态已经保存在 `data/sessions/demo.json` 中。
 
+## 演示步骤
+
+以下步骤适合用于终端录屏演示。录屏时不要打开 `.env` 文件，避免暴露真实 APIKey。
+
+| 步骤 | 命令或输入 | 用途 |
+| --- | --- | --- |
+| 1 | `cd D:\PythonProjects\mini-runtime-agent` | 进入项目目录。 |
+| 2 | `python -m pip install -r requirements.txt` | 安装运行和测试依赖。 |
+| 3 | `Copy-Item .env.example .env` | 首次运行时复制环境变量模板。 |
+| 4 | `notepad .env` | 填写 `LLM_API_KEY`、`LLM_BASE_URL`、`LLM_MODEL`。录屏时不要展示文件内容。 |
+| 5 | `python main.py --session demo` | 启动 CLI，并使用 `demo` 作为 session_id。 |
+| 6 | `你好，请用一句话回复我。` | 演示普通问答直接返回 `final_answer`。 |
+| 7 | `请直接返回最终答案：cli-ok` | 演示简单 CLI 指令服从和精确 final answer 校验。 |
+| 8 | `请使用 calculator 工具计算 12 * (3 + 4)，并给出最终答案。` | 演示 LLM 触发 `calculator` 工具，本地 runtime 执行工具并返回结果。 |
+| 9 | `搜索 runtime trace logging` | 演示 `search_mock` 本地 mock 搜索工具。 |
+| 10 | `请帮我创建一个任务：整理这个 Agent 项目的 README，要求包括运行方式、系统设计和 memory 说明。` | 演示 `todo` 任务创建，并把 task state 写入 session。 |
+| 11 | `exit` | 退出当前 CLI，准备演示跨轮次恢复。 |
+| 12 | `python main.py --session demo` | 使用同一个 session 重新启动 CLI。 |
+| 13 | `继续刚才的 README 任务，现在帮我列出目录。` | 演示从 `data/sessions/demo.json` 召回 active tasks 并继续执行。 |
+| 14 | `exit` | 退出 CLI。 |
+| 15 | `Get-Content data\sessions\demo.json -Encoding UTF8` | 查看 session 文件，确认 messages 和 tasks 已持久化。 |
+| 16 | `Get-ChildItem data\traces | Sort-Object LastWriteTime -Descending | Select-Object -First 5` | 查看最近生成的 trace 文件列表。 |
+| 17 | `Get-ChildItem data\traces | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Encoding UTF8` | 查看最新 trace 内容，确认 action、tool_result、parse_error、schema_error、final_answer 等字段。 |
+| 18 | `python -m pytest tests -q -p no:cacheprovider --basetemp .pytest-run-demo` | 运行自动化测试，验证核心功能。 |
+
 ## 稳定性优化说明
 
 项目核心流程已通过 LLMapi 真实请求验证：prompt 构造、JSON action 解析、本地工具执行、memory 持久化、trace 记录和跨轮次任务续接都可以端到端跑通。
