@@ -1,0 +1,193 @@
+mini-runtime-agent 终端录屏演示命令清单
+========================================
+
+录屏前准备
+----------
+说明：录屏前先确认 .env 已经配置好。录屏时不要打开 .env，避免暴露真实 APIKey。
+
+1. 进入项目目录
+
+命令：
+cd D:\PythonProjects\mini-runtime-agent
+
+用途：
+进入 mini-runtime-agent 项目根目录，后续命令都在这里执行。
+
+2. 安装依赖
+
+命令：
+python -m pip install -r requirements.txt
+
+用途：
+安装项目运行需要的 openai、python-dotenv、pytest 等依赖。
+
+3. 如果还没有 .env，创建本地环境变量文件
+
+命令：
+Copy-Item .env.example .env
+notepad .env
+
+用途：
+复制环境变量模板并填写真实 LLMapi APIKey。
+
+注意：
+.env 中应包含：
+LLM_API_KEY=你的真实APIKey
+LLM_BASE_URL=https://maas-api.cn-huabei-1.xf-yun.com/v2
+LLM_MODEL=xopqwen35v35b
+
+录屏开始后执行
+--------------
+
+4. 清屏
+
+命令：
+cls
+
+用途：
+让终端画面干净，便于录屏展示。
+
+5. 启动 Agent CLI
+
+命令：
+python main.py --session demo
+
+用途：
+启动 CLI，并使用 demo 作为 session_id，演示多轮对话和 memory 持久化。
+
+6. 普通问答演示
+
+在 CLI 中输入：
+你好，请用一句话回复我。
+
+用途：
+演示普通聊天问题优先走 final_answer，不调用工具。
+
+7. 简单 CLI 指令服从演示
+
+在 CLI 中输入：
+请直接返回最终答案：cli-ok
+
+用途：
+演示优化后的简单指令服从能力，以及 final_answer 输出稳定性。
+
+8. calculator 工具调用演示
+
+在 CLI 中输入：
+请使用 calculator 工具计算 12 * (3 + 4)，并给出最终答案。
+
+用途：
+演示 LLM 输出 tool_call，本地 runtime 执行 calculator 工具，然后把 observation 交回 LLM 生成 final_answer。
+
+9. search_mock 工具调用演示
+
+在 CLI 中输入：
+搜索 runtime trace logging
+
+用途：
+演示本地 mock 搜索工具 search_mock 的调用流程。
+
+10. 创建 README 任务
+
+在 CLI 中输入：
+请帮我创建一个任务：整理这个 Agent 项目的 README，要求包括运行方式、系统设计和 memory 说明。
+
+用途：
+演示 todo/task state 写入当前 session，用于跨轮次继续执行。
+
+11. 退出 CLI
+
+在 CLI 中输入：
+exit
+
+用途：
+结束当前 CLI 进程，准备演示重新启动后仍能恢复 session memory。
+
+演示跨轮次 memory
+----------------
+
+12. 重新启动同一个 session
+
+命令：
+python main.py --session demo
+
+用途：
+重新打开 demo session，验证 data/sessions/demo.json 中保存的任务可以被召回。
+
+13. 继续刚才的 README 任务
+
+在 CLI 中输入：
+继续刚才的 README 任务，现在帮我列出目录。
+
+用途：
+演示 Agent 基于 active tasks 继续处理，而不是把问题当成全新请求。
+
+14. 再次退出 CLI
+
+在 CLI 中输入：
+exit
+
+用途：
+结束交互演示。
+
+展示生成文件
+------------
+
+15. 查看 session 文件
+
+命令：
+Get-Content data\sessions\demo.json -Encoding UTF8
+
+用途：
+展示 session 中保存了 messages 和 tasks。
+
+16. 查看最近生成的 trace 文件列表
+
+命令：
+Get-ChildItem data\traces | Sort-Object LastWriteTime -Descending | Select-Object -First 5
+
+用途：
+展示每轮对话都生成了 trace 文件。
+
+17. 查看最新 trace 内容
+
+命令：
+Get-ChildItem data\traces | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Encoding UTF8
+
+用途：
+展示 trace 中的 raw_llm_output、tool_name、tool_result、parse_error、schema_error、final_answer 等字段。
+
+自动化测试演示
+--------------
+
+18. 运行测试
+
+命令：
+python -m pytest tests -q -p no:cacheprovider --basetemp .pytest-run-demo
+
+用途：
+演示自动化测试通过，覆盖 calculator、memory、runtime、LLM client、prompt、tools 等核心功能。
+
+补充说明
+--------
+
+1. 如果 PowerShell 显示中文乱码，可先执行：
+
+命令：
+chcp 65001
+
+用途：
+切换终端编码为 UTF-8。
+
+2. 如果需要重新演示干净 session，可以换一个 session_id：
+
+命令：
+python main.py --session demo2
+
+用途：
+使用新的 session 文件，避免旧 demo 数据影响录屏。
+
+3. 不要在录屏中展示 .env 文件内容。
+
+用途：
+避免泄露真实 APIKey。

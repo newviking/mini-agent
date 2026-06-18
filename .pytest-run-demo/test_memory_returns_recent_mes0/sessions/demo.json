@@ -1,0 +1,39 @@
+{
+  "session_id": "demo",
+  "messages": [
+    {
+      "role": "user",
+      "content": "message 0"
+    },
+    {
+      "role": "user",
+      "content": "message 1"
+    },
+    {
+      "role": "user",
+      "content": "message 2"
+    },
+    {
+      "role": "user",
+      "content": "message 3"
+    },
+    {
+      "role": "user",
+      "content": "message 4"
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "task_done",
+      "title": "Done",
+      "status": "done",
+      "notes": ""
+    },
+    {
+      "task_id": "task_active",
+      "title": "Active",
+      "status": "in_progress",
+      "notes": ""
+    }
+  ]
+}

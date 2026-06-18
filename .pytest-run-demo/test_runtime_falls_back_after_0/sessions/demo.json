@@ -1,0 +1,14 @@
+{
+  "session_id": "demo",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hello"
+    },
+    {
+      "role": "assistant",
+      "content": "抱歉，我无法生成合法 JSON action。请稍后重试，或换一种更明确的说法。"
+    }
+  ],
+  "tasks": []
+}

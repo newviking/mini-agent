@@ -1,0 +1,14 @@
+{
+  "session_id": "demo",
+  "messages": [
+    {
+      "role": "user",
+      "content": "calculate 2 + 2"
+    },
+    {
+      "role": "assistant",
+      "content": "2 + 2 = 4"
+    }
+  ],
+  "tasks": []
+}

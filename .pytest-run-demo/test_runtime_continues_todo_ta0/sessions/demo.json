@@ -1,0 +1,29 @@
+{
+  "session_id": "demo",
+  "messages": [
+    {
+      "role": "user",
+      "content": "创建 README 任务"
+    },
+    {
+      "role": "assistant",
+      "content": "README task created."
+    },
+    {
+      "role": "user",
+      "content": "继续刚才的 README 任务"
+    },
+    {
+      "role": "assistant",
+      "content": "Continuing README task outline."
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "task_74474e02",
+      "title": "整理 README",
+      "status": "in_progress",
+      "notes": "包括运行方式、系统设计和 memory 说明"
+    }
+  ]
+}

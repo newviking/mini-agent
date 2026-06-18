@@ -1,0 +1,14 @@
+{
+  "session_id": "demo",
+  "messages": [
+    {
+      "role": "user",
+      "content": "请直接返回最终答案：cli-ok"
+    },
+    {
+      "role": "assistant",
+      "content": "cli-ok"
+    }
+  ],
+  "tasks": []
+}

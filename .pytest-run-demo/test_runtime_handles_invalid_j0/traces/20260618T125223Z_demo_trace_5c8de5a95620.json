@@ -1,0 +1,35 @@
+{
+  "trace_id": "trace_5c8de5a95620",
+  "created_at": "2026-06-18T12:52:23.227031+00:00",
+  "session_id": "demo",
+  "user_input": "hello",
+  "steps": [
+    {
+      "step": 1,
+      "raw_llm_output": "not json",
+      "llm_output": "not json",
+      "action": null,
+      "parse_error": "Expecting value: line 1 column 1 (char 0)",
+      "schema_error": null,
+      "repair_attempt": 1,
+      "tool_name": null,
+      "tool_args": null,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "step": 2,
+      "raw_llm_output": "{\"action\": \"final_answer\", \"answer\": \"recovered\"}",
+      "llm_output": "{\"action\": \"final_answer\", \"answer\": \"recovered\"}",
+      "action": {
+        "action": "final_answer",
+        "answer": "recovered"
+      },
+      "parse_error": null,
+      "schema_error": null,
+      "repair_attempt": null
+    }
+  ],
+  "final_answer": "recovered",
+  "fallback_answer": null,
+  "error": null
+}

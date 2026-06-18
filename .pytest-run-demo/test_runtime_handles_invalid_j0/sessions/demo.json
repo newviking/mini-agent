@@ -1,0 +1,14 @@
+{
+  "session_id": "demo",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hello"
+    },
+    {
+      "role": "assistant",
+      "content": "recovered"
+    }
+  ],
+  "tasks": []
+}

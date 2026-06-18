@@ -1,0 +1,17 @@
+{
+  "session_id": "demo",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hello"
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "task_3c50b96f",
+      "title": "Write README",
+      "status": "in_progress",
+      "notes": "Include runtime and memory sections."
+    }
+  ]
+}

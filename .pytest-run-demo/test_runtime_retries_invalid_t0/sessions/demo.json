@@ -1,0 +1,14 @@
+{
+  "session_id": "demo",
+  "messages": [
+    {
+      "role": "user",
+      "content": "run shell"
+    },
+    {
+      "role": "assistant",
+      "content": "I cannot use that tool."
+    }
+  ],
+  "tasks": []
+}
