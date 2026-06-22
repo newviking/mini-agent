@@ -1,0 +1,262 @@
+请从零实现一个最小可用 Agent Runtime 项目，项目名为 mini-runtime-agent。
+
+目标：
+实现一个不依赖 LangChain、OpenHands、AutoGen 等现成 Agent 框架的最小可用 Agent。允许使用 OpenAI Python SDK 调用真实 LLM API，但 Agent 的主循环、工具调度、session 管理、memory 召回、trace 记录和异常处理必须由本地代码自己实现。
+
+技术栈：
+- Python 3.10+
+- OpenAI Python SDK
+- python-dotenv
+- pytest
+- 本地 JSON 文件作为 session / trace 存储
+- CLI 作为交互入口
+
+功能要求：
+1. 支持多轮对话和 session 维护。
+2. 支持通过 --session 指定 session_id，例如：
+   python main.py --session default
+3. 每个 session 的历史消息和任务状态保存到：
+   data/sessions/{session_id}.json
+4. Agent 至少支持如下基本循环：
+   - 接收用户输入
+   - 加载 session memory 和 active tasks
+   - 构造 prompt
+   - 调用真实 LLM API
+   - 判断是直接回答、调用工具，还是更新任务状态
+   - 执行工具
+   - 读取工具结果
+   - 将工具结果作为 observation 继续交给 LLM
+   - 循环直到给出 final_answer 或达到最大步数
+5. 最大步数限制：默认 MAX_STEPS = 6。
+6. 基本异常处理：
+   - LLM 输出不是合法 JSON 时不能崩溃
+   - 工具不存在时不能崩溃
+   - 工具参数错误时不能崩溃
+   - 工具内部异常时不能崩溃
+   - 所有异常都要写入 trace
+7. 工具调用 trace 或执行日志：
+   - 每轮对话生成一个 trace 文件
+   - 保存到 data/traces/
+   - trace 需要包含 session_id、user_input、每一步 LLM action、tool_name、tool_args、tool_result、final_answer、error 等信息
+8. 至少实现 4 个工具：
+   - calculator：安全计算数学表达式，不要裸用 eval
+   - search_mock：本地 mock 搜索，返回若干预设结果
+   - read_docs：读取 docs 目录下的 markdown 文档
+   - todo：创建、列出、更新任务，用于跨轮次继续执行
+9. 必须支持跨轮次继续执行：
+   第一轮用户说：
+   “请帮我创建一个任务：整理这个 Agent 项目的 README，要求包括运行方式、系统设计和 memory 说明。”
+   Agent 需要创建任务并记录状态。
+   第二轮用户说：
+   “继续刚才的 README 任务，现在帮我列出目录。”
+   Agent 需要基于已有 session task state 继续处理，而不是当成全新问题。
+10. 不要使用 OpenAI 内置 function calling 直接完成工具执行流程。请让 LLM 输出自定义 JSON action，然后由本地 runtime 解析并执行工具，以体现核心 runtime 是自己实现的。
+
+LLM 输出协议：
+LLM 每一步必须只输出 JSON，不要输出 markdown。
+
+支持三类 action：
+
+1. final_answer:
+{
+  "action": "final_answer",
+  "answer": "给用户的最终回答"
+}
+
+2. tool_call:
+{
+  "action": "tool_call",
+  "tool_name": "calculator | search_mock | read_docs | todo",
+  "tool_args": {}
+}
+
+3. task_update:
+{
+  "action": "task_update",
+  "task": {
+    "task_id": "task_xxx 或留空由系统生成",
+    "title": "任务标题",
+    "status": "in_progress | done | blocked",
+    "notes": "任务说明"
+  }
+}
+
+项目结构必须如下：
+
+mini-runtime-agent/
+  README.md
+  requirements.txt
+  .env.example
+  main.py
+
+  agent/
+    __init__.py
+    runtime.py
+    llm_client.py
+    prompt.py
+    schemas.py
+    memory.py
+    trace.py
+
+  tools/
+    __init__.py
+    base.py
+    calculator.py
+    search_mock.py
+    read_docs.py
+    todo.py
+
+  docs/
+    agent_design.md
+    tools.md
+    memory.md
+
+  data/
+    sessions/
+      .gitkeep
+    traces/
+      .gitkeep
+
+  examples/
+    demo_transcript.md
+    ai_prompt_log.md
+    problem_solving_log.md
+
+  tests/
+    test_calculator.py
+    test_memory.py
+    test_runtime.py
+
+具体实现要求：
+
+1. main.py
+- 使用 argparse 支持 --session 参数
+- 启动后进入 CLI 循环
+- 用户输入 exit 或 quit 时退出
+- 每次输入调用 AgentRuntime.run_turn(user_input, session_id)
+- 打印 Agent 最终回答
+
+2. agent/llm_client.py
+- 从环境变量读取 OPENAI_API_KEY 和 OPENAI_MODEL
+- 默认模型使用 gpt-4.1-mini
+- 使用 OpenAI Responses API 调用模型
+- 返回纯文本内容
+- 如果没有 API key，给出清晰错误提示
+
+3. agent/prompt.py
+- 构造 system prompt
+- 明确告诉 LLM：
+  - 只能输出 JSON
+  - 必须遵循 action 协议
+  - 需要工具时输出 tool_call
+  - 已有 active tasks 时要优先利用
+  - 不要编造工具结果
+- 将 recent messages 和 active tasks 注入 prompt
+
+4. agent/runtime.py
+- 实现 AgentRuntime
+- 实现最大步数限制
+- 实现 action JSON 解析
+- 实现工具调用
+- 将每一步 observation 追加到上下文中
+- 保存 assistant final answer 到 session
+- 每轮生成 trace 文件
+
+5. agent/memory.py
+- 使用 JSON 文件保存 session
+- session 内容包括 messages 和 tasks
+- 提供：
+  - load_session
+  - save_session
+  - append_message
+  - get_recent_messages
+  - get_active_tasks
+  - upsert_task
+
+6. agent/trace.py
+- 提供 TraceLogger
+- 每轮创建 trace_id
+- 支持 add_step
+- 支持 save
+- trace 文件命名包含时间戳和 session_id
+
+7. tools/base.py
+- 定义 BaseTool
+- 每个工具包含 name、description、run(args, session=None)
+
+8. tools/calculator.py
+- 使用 ast 实现安全表达式计算
+- 只允许数字、+、-、*、/、**、%、括号
+- 返回 {"ok": true, "result": xxx}
+- 异常返回 {"ok": false, "error": "..."}
+
+9. tools/search_mock.py
+- 内置一个小型知识库
+- 根据 query 做简单关键词匹配
+- 返回 title 和 snippet
+
+10. tools/read_docs.py
+- 只能读取 docs 目录下的 .md 文件
+- 防止路径穿越
+- 文件不存在时返回错误
+
+11. tools/todo.py
+- 支持 operation:
+  - create
+  - list
+  - update
+- create 时生成 task_id
+- list 时返回当前 session 的 tasks
+- update 时修改 status / notes
+- 所有任务保存到当前 session
+
+12. README.md 必须详细说明：
+- 项目简介
+- 运行方式
+- 环境变量配置
+- 系统设计
+- Agent loop 流程
+- 工具系统
+- memory 的召回时机
+- memory 的放置方式
+- trace 日志格式
+- 跨轮次继续执行 demo
+- 如何录屏展示
+- 代码链接提交说明
+
+13. examples/demo_transcript.md
+请写一段完整终端交互示例，必须包含：
+- calculator 调用
+- search_mock 调用
+- 第一轮创建 README 任务
+- 第二轮继续 README 任务
+
+14. examples/ai_prompt_log.md
+记录用于 AI 辅助开发的 prompt，至少 3 条。
+
+15. examples/problem_solving_log.md
+记录至少 3 个开发问题和解决方案：
+- LLM 输出非 JSON
+- 工具调用失败
+- 跨轮次任务无法召回
+
+16. tests/
+至少写基础测试：
+- calculator 正常计算和非法表达式测试
+- memory 创建 session、追加消息、保存任务测试
+- runtime 在 mock LLM 输出 tool_call 时能调用工具测试
+
+验收标准：
+1. 能运行：
+   pip install -r requirements.txt
+   cp .env.example .env
+   python main.py --session demo
+2. 能进行多轮对话。
+3. 能调用 calculator / search_mock / read_docs / todo。
+4. 能生成 data/sessions/demo.json。
+5. 能生成 data/traces/*.json。
+6. 退出后重新运行同一个 session，Agent 能继续已有任务。
+7. README 写清楚 memory 召回时机和放置方式。
+8. 不引入 LangChain、OpenHands、AutoGen 等 Agent 框架。
+9. 工具执行由本地 runtime 完成，而不是由现成 Agent 框架完成。
+10. 所有代码保持简洁，优先保证最小可用和可展示。
