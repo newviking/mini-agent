@@ -241,6 +241,11 @@ trace 内容示例：
 | 17 | `Get-ChildItem data\traces | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Encoding UTF8` | 查看最新 trace 内容，确认 action、tool_result、parse_error、schema_error、final_answer 等字段。 |
 | 18 | `python -m pytest tests -q -p no:cacheprovider --basetemp .pytest-run-demo` | 运行自动化测试，验证核心功能。 |
 
+## 视频演示
+
+https://github.com/user-attachments/assets/fd319cdc-884b-430b-a76d-7d2bebaf9e8e
+
+
 ## 稳定性优化说明
 
 项目核心流程已通过 LLMapi 真实请求验证：prompt 构造、JSON action 解析、本地工具执行、memory 持久化、trace 记录和跨轮次任务续接都可以端到端跑通。
